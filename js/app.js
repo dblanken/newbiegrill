@@ -5,19 +5,25 @@ const activeList = document.getElementById("active-list");
 const activeEmpty = document.getElementById("active-empty");
 const alertBanner = document.getElementById("alert-banner");
 const notifyBtn = document.getElementById("notify-permission-btn");
-const clearFinishedBtn = document.getElementById("clear-finished-btn");
 const customForm = document.getElementById("custom-food-form");
 const customDialog = document.getElementById("custom-food-dialog");
 const addCustomBtn = document.getElementById("add-custom-btn");
+const donenessDialog = document.getElementById("doneness-dialog");
+const donenessFoodName = document.getElementById("doneness-food-name");
+const donenessOptionsEl = document.getElementById("doneness-options");
+const donenessCancelBtn = document.getElementById("doneness-cancel-btn");
 
+// Negative values are formatted with a leading "-" (used for overtime).
 function fmtTime(totalSeconds) {
-  const s = Math.max(0, Math.round(totalSeconds));
+  const negative = totalSeconds < 0;
+  const s = Math.round(Math.abs(totalSeconds));
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
   const mm = String(m).padStart(h > 0 ? 2 : 1, "0");
   const ss = String(sec).padStart(2, "0");
-  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${mm}:${ss}`;
+  const core = h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${mm}:${ss}`;
+  return negative ? `-${core}` : core;
 }
 
 function renderPresets() {
@@ -36,12 +42,22 @@ function renderPresets() {
     for (const food of foods) {
       const card = document.createElement("button");
       card.className = "food-card";
+      const timeLabel = food.donenessOptions
+        ? `${fmtTime(Math.min(...food.donenessOptions.map((o) => o.totalTime)))}–${fmtTime(
+            Math.max(...food.donenessOptions.map((o) => o.totalTime))
+          )}`
+        : fmtTime(food.totalTime);
       card.innerHTML = `
         <span class="food-name">${food.name}</span>
-        <span class="food-meta">${food.heat} &middot; ${fmtTime(food.totalTime)}</span>
+        <span class="food-meta">${food.heat} &middot; ${timeLabel}</span>
+        ${food.donenessOptions ? `<span class="food-badge">Choose doneness</span>` : ""}
       `;
       card.addEventListener("click", () => {
-        store.add(food);
+        if (food.donenessOptions) {
+          openDonenessPicker(food);
+        } else {
+          store.add(food);
+        }
       });
       grid.appendChild(card);
     }
@@ -50,17 +66,45 @@ function renderPresets() {
   }
 }
 
+function openDonenessPicker(food) {
+  donenessFoodName.textContent = `${food.name} — Choose Doneness`;
+  donenessOptionsEl.innerHTML = "";
+  for (const opt of food.donenessOptions) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn doneness-option";
+    btn.innerHTML = `<span>${opt.label}</span><span class="doneness-time">${fmtTime(opt.totalTime)}</span>`;
+    btn.addEventListener("click", () => {
+      store.add({
+        id: food.id,
+        name: `${food.name} (${opt.label})`,
+        category: food.category,
+        heat: food.heat,
+        totalTime: opt.totalTime,
+        flipAt: opt.flipAt,
+      });
+      donenessDialog.close();
+    });
+    donenessOptionsEl.appendChild(btn);
+  }
+  donenessDialog.showModal();
+}
+
+donenessCancelBtn.addEventListener("click", () => donenessDialog.close());
+
 function timerCard(t) {
+  const elapsed = store.elapsedOf(t);
   const remaining = store.remainingOf(t);
-  const pct = Math.min(100, (store.elapsedOf(t) / t.duration) * 100);
-  const nextFlip = t.flipAt.find((m) => !t.firedFlips.includes(m) && m > store.elapsedOf(t) - 0.5);
+  const overtime = t.started && remaining < 0;
+  const pct = Math.min(100, (elapsed / t.duration) * 100);
+  const nextFlip = t.flipAt.find((m) => !t.firedFlips.includes(m) && m > elapsed - 0.5);
 
   const el = document.createElement("div");
   el.className =
     "timer-card" +
-    (t.finished ? " finished" : "") +
-    (t.started && !t.running && !t.finished ? " paused" : "") +
-    (!t.started ? " pending" : "");
+    (t.started && !t.running ? " paused" : "") +
+    (!t.started ? " pending" : "") +
+    (overtime ? " overtime" : "");
   el.dataset.id = t.id;
   el.innerHTML = `
     <div class="timer-head">
@@ -68,15 +112,15 @@ function timerCard(t) {
         <div class="timer-name">${t.name}</div>
         <div class="timer-heat">${t.heat}</div>
       </div>
-      <div class="timer-remaining">${t.finished ? "Done" : fmtTime(remaining)}</div>
+      <div class="timer-remaining${overtime ? " overtime-text" : ""}">${fmtTime(remaining)}</div>
     </div>
-    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="progress-track"><div class="progress-fill${overtime ? " overtime" : ""}" style="width:${pct}%"></div></div>
     <div class="timer-sub">
       ${
-        t.finished
-          ? "Alerted — remove when pulled off the grill."
-          : !t.started
+        !t.started
           ? "Ready — tap Start when it's on the grill."
+          : overtime
+          ? `Past done by ${fmtTime(Math.abs(remaining))} — stop or pause when ready.`
           : nextFlip !== undefined
           ? `Next flip at ${fmtTime(nextFlip)}`
           : "No more flips — waiting for done alert"
@@ -84,9 +128,7 @@ function timerCard(t) {
     </div>
     <div class="timer-controls">
       ${
-        t.finished
-          ? `<button class="btn btn-remove" data-action="remove">Remove</button>`
-          : !t.started
+        !t.started
           ? `
             <button class="btn btn-primary" data-action="startTimer">Start</button>
             <button class="btn btn-remove" data-action="remove">Cancel</button>
@@ -105,7 +147,6 @@ function renderActive() {
   const timers = [...store.timers].sort((a, b) => a.createdAt - b.createdAt);
   activeList.innerHTML = "";
   activeEmpty.style.display = timers.length ? "none" : "block";
-  clearFinishedBtn.style.display = timers.some((t) => t.finished) ? "inline-flex" : "none";
   for (const t of timers) {
     activeList.appendChild(timerCard(t));
   }
@@ -122,8 +163,6 @@ activeList.addEventListener("click", (e) => {
   if (action === "remove") store.remove(id);
 });
 
-clearFinishedBtn.addEventListener("click", () => store.clearFinished());
-
 store.onChange(() => renderActive());
 
 store.onFlip = (t, mark) => {
@@ -137,7 +176,7 @@ store.onFlip = (t, mark) => {
 store.onDone = (t) => {
   alertUser({
     title: `${t.name} is done!`,
-    body: "Timer finished — pull it off the grill.",
+    body: "Timer finished — pull it off the grill. It'll keep counting up until you stop it.",
     beeps: 3,
   });
   flashBanner(`${t.name} is done!`);

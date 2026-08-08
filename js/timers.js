@@ -48,8 +48,12 @@ class TimerStore {
     return timer.accumulated;
   }
 
+  // Can go negative once a timer runs past its duration - that's overtime,
+  // not an error. The food isn't necessarily done just because the clock
+  // hit zero, so timers are never auto-stopped; the cook decides when to
+  // pause or stop.
   remainingOf(timer) {
-    return Math.max(timer.duration - this.elapsedOf(timer), 0);
+    return timer.duration - this.elapsedOf(timer);
   }
 
   // Adds a timer in a pending (not counting down) state. Nothing runs until
@@ -65,7 +69,6 @@ class TimerStore {
       flipAt: [...(food.flipAt || [])],
       firedFlips: [],
       doneFired: false,
-      finished: false,
       started: false,
       running: false,
       accumulated: 0,
@@ -96,7 +99,7 @@ class TimerStore {
 
   resume(id) {
     const t = this.timers.find((t) => t.id === id);
-    if (!t || !t.started || t.running || t.finished) return;
+    if (!t || !t.started || t.running) return;
     t.startedAt = Date.now();
     t.running = true;
     this._emit();
@@ -107,17 +110,15 @@ class TimerStore {
     this._emit();
   }
 
-  clearFinished() {
-    this.timers = this.timers.filter((t) => !t.finished);
-    this._emit();
-  }
-
   // Advance state and fire callbacks for any thresholds crossed since the
   // last tick. Safe to call frequently; it's idempotent per threshold.
+  // Timers are never auto-stopped at zero - they keep running into negative
+  // (overtime) time until the cook pauses or removes them; doneFired just
+  // guards against re-firing the done alert every tick.
   tick() {
     let changed = false;
     for (const t of this.timers) {
-      if (t.finished) continue;
+      if (!t.started || !t.running) continue;
       const elapsed = this.elapsedOf(t);
 
       for (const mark of t.flipAt) {
@@ -130,9 +131,6 @@ class TimerStore {
 
       if (elapsed >= t.duration && !t.doneFired) {
         t.doneFired = true;
-        t.finished = true;
-        t.running = false;
-        t.accumulated = t.duration;
         changed = true;
         this.onDone && this.onDone(t);
       }

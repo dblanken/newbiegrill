@@ -10,9 +10,14 @@ const BUILTIN_FOODS = [
     name: "Burger",
     category: "Meat",
     heat: "Medium-High",
-    totalTime: 10 * 60,
-    flipAt: [5 * 60],
+    totalTime: 9 * 60,
+    flipAt: [4 * 60 + 30],
     notes: "Flip once. Don't press down.",
+    donenessOptions: [
+      { label: "Medium", totalTime: 8 * 60, flipAt: [4 * 60] },
+      { label: "Medium-Well", totalTime: 9 * 60, flipAt: [4 * 60 + 30] },
+      { label: "Well-Done", totalTime: 10 * 60, flipAt: [5 * 60] },
+    ],
   },
   {
     id: "hotdog",
@@ -76,6 +81,13 @@ const BUILTIN_FOODS = [
     totalTime: 8 * 60,
     flipAt: [4 * 60],
     notes: "Sear hot. Rest 5 min after grill.",
+    donenessOptions: [
+      { label: "Rare", totalTime: 6 * 60, flipAt: [3 * 60] },
+      { label: "Medium-Rare", totalTime: 7 * 60, flipAt: [3 * 60 + 30] },
+      { label: "Medium", totalTime: 8 * 60, flipAt: [4 * 60] },
+      { label: "Medium-Well", totalTime: 9 * 60, flipAt: [4 * 60 + 30] },
+      { label: "Well-Done", totalTime: 11 * 60, flipAt: [5 * 60 + 30] },
+    ],
   },
   {
     id: "steak-thin",
@@ -85,6 +97,13 @@ const BUILTIN_FOODS = [
     totalTime: 6 * 60,
     flipAt: [3 * 60],
     notes: "Cooks fast — watch closely.",
+    donenessOptions: [
+      { label: "Rare", totalTime: 4 * 60, flipAt: [2 * 60] },
+      { label: "Medium-Rare", totalTime: 5 * 60, flipAt: [2 * 60 + 30] },
+      { label: "Medium", totalTime: 6 * 60, flipAt: [3 * 60] },
+      { label: "Medium-Well", totalTime: 7 * 60, flipAt: [3 * 60 + 30] },
+      { label: "Well-Done", totalTime: 8 * 60, flipAt: [4 * 60] },
+    ],
   },
   {
     id: "porkchop",
@@ -94,6 +113,11 @@ const BUILTIN_FOODS = [
     totalTime: 12 * 60,
     flipAt: [6 * 60],
     notes: "Internal temp 145F, then rest.",
+    donenessOptions: [
+      { label: "Medium", totalTime: 12 * 60, flipAt: [6 * 60] },
+      { label: "Medium-Well", totalTime: 13 * 60, flipAt: [6 * 60 + 30] },
+      { label: "Well-Done", totalTime: 14 * 60, flipAt: [7 * 60] },
+    ],
   },
   {
     id: "pork-tenderloin",
@@ -103,6 +127,11 @@ const BUILTIN_FOODS = [
     totalTime: 20 * 60,
     flipAt: [10 * 60],
     notes: "Turn occasionally for even browning. Internal temp 145F.",
+    donenessOptions: [
+      { label: "Medium", totalTime: 20 * 60, flipAt: [10 * 60] },
+      { label: "Medium-Well", totalTime: 22 * 60, flipAt: [11 * 60] },
+      { label: "Well-Done", totalTime: 24 * 60, flipAt: [12 * 60] },
+    ],
   },
   {
     id: "ribs",
@@ -121,6 +150,13 @@ const BUILTIN_FOODS = [
     totalTime: 8 * 60,
     flipAt: [4 * 60],
     notes: "Sear hot, rest before serving.",
+    donenessOptions: [
+      { label: "Rare", totalTime: 6 * 60, flipAt: [3 * 60] },
+      { label: "Medium-Rare", totalTime: 7 * 60, flipAt: [3 * 60 + 30] },
+      { label: "Medium", totalTime: 8 * 60, flipAt: [4 * 60] },
+      { label: "Medium-Well", totalTime: 9 * 60, flipAt: [4 * 60 + 30] },
+      { label: "Well-Done", totalTime: 10 * 60, flipAt: [5 * 60] },
+    ],
   },
   {
     id: "turkey-burger",
@@ -141,6 +177,11 @@ const BUILTIN_FOODS = [
     totalTime: 12 * 60,
     flipAt: [6 * 60],
     notes: "Skin side down most of the time.",
+    donenessOptions: [
+      { label: "Medium-Rare", totalTime: 10 * 60, flipAt: [5 * 60] },
+      { label: "Medium", totalTime: 12 * 60, flipAt: [6 * 60] },
+      { label: "Well-Done", totalTime: 14 * 60, flipAt: [7 * 60] },
+    ],
   },
   {
     id: "shrimp",

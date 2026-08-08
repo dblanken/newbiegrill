@@ -143,6 +143,37 @@ main {
   color: var(--text-dim);
 }
 
+.food-badge {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent-2);
+  border: 1px solid var(--accent-2);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.doneness-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.doneness-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+}
+
+.doneness-time {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
 .active-list {
   display: flex;
   flex-direction: column;
@@ -158,10 +189,12 @@ main {
 
 .timer-card.paused { opacity: 0.75; }
 .timer-card.pending { border-style: dashed; border-color: var(--accent-2); }
-.timer-card.finished {
-  border-color: var(--good);
-  background: linear-gradient(0deg, rgba(76,175,125,0.08), rgba(76,175,125,0.08)), var(--panel);
+.timer-card.overtime {
+  border-color: var(--danger);
+  background: linear-gradient(0deg, rgba(217,80,80,0.1), rgba(217,80,80,0.1)), var(--panel);
 }
+
+.timer-remaining.overtime-text { color: var(--danger); }
 
 .timer-head {
   display: flex;
@@ -197,6 +230,10 @@ main {
   height: 100%;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   transition: width 1s linear;
+}
+
+.progress-fill.overtime {
+  background: linear-gradient(90deg, var(--danger), #ff8080);
 }
 
 .timer-sub {
