@@ -1,6 +1,6 @@
 const store = new TimerStore();
 
-const presetGrid = document.getElementById("preset-grid");
+const presetGroups = document.getElementById("preset-groups");
 const activeList = document.getElementById("active-list");
 const activeEmpty = document.getElementById("active-empty");
 const alertBanner = document.getElementById("alert-banner");
@@ -21,18 +21,32 @@ function fmtTime(totalSeconds) {
 }
 
 function renderPresets() {
-  presetGrid.innerHTML = "";
-  for (const food of getAllFoods()) {
-    const card = document.createElement("button");
-    card.className = "food-card";
-    card.innerHTML = `
-      <span class="food-name">${food.name}</span>
-      <span class="food-meta">${food.heat} &middot; ${fmtTime(food.totalTime)}</span>
-    `;
-    card.addEventListener("click", () => {
-      store.start(food);
-    });
-    presetGrid.appendChild(card);
+  presetGroups.innerHTML = "";
+  for (const [category, foods] of groupFoodsByCategory(getAllFoods())) {
+    const section = document.createElement("div");
+    section.className = "preset-category";
+
+    const heading = document.createElement("h3");
+    heading.className = "preset-category-heading";
+    heading.textContent = category;
+    section.appendChild(heading);
+
+    const grid = document.createElement("div");
+    grid.className = "preset-grid";
+    for (const food of foods) {
+      const card = document.createElement("button");
+      card.className = "food-card";
+      card.innerHTML = `
+        <span class="food-name">${food.name}</span>
+        <span class="food-meta">${food.heat} &middot; ${fmtTime(food.totalTime)}</span>
+      `;
+      card.addEventListener("click", () => {
+        store.add(food);
+      });
+      grid.appendChild(card);
+    }
+    section.appendChild(grid);
+    presetGroups.appendChild(section);
   }
 }
 
@@ -42,7 +56,11 @@ function timerCard(t) {
   const nextFlip = t.flipAt.find((m) => !t.firedFlips.includes(m) && m > store.elapsedOf(t) - 0.5);
 
   const el = document.createElement("div");
-  el.className = "timer-card" + (t.finished ? " finished" : "") + (!t.running && !t.finished ? " paused" : "");
+  el.className =
+    "timer-card" +
+    (t.finished ? " finished" : "") +
+    (t.started && !t.running && !t.finished ? " paused" : "") +
+    (!t.started ? " pending" : "");
   el.dataset.id = t.id;
   el.innerHTML = `
     <div class="timer-head">
@@ -57,6 +75,8 @@ function timerCard(t) {
       ${
         t.finished
           ? "Alerted — remove when pulled off the grill."
+          : !t.started
+          ? "Ready — tap Start when it's on the grill."
           : nextFlip !== undefined
           ? `Next flip at ${fmtTime(nextFlip)}`
           : "No more flips — waiting for done alert"
@@ -66,6 +86,11 @@ function timerCard(t) {
       ${
         t.finished
           ? `<button class="btn btn-remove" data-action="remove">Remove</button>`
+          : !t.started
+          ? `
+            <button class="btn btn-primary" data-action="startTimer">Start</button>
+            <button class="btn btn-remove" data-action="remove">Cancel</button>
+          `
           : `
             <button class="btn" data-action="${t.running ? "pause" : "resume"}">${t.running ? "Pause" : "Resume"}</button>
             <button class="btn btn-remove" data-action="remove">Stop</button>
@@ -91,6 +116,7 @@ activeList.addEventListener("click", (e) => {
   if (!btn) return;
   const id = btn.closest(".timer-card").dataset.id;
   const action = btn.dataset.action;
+  if (action === "startTimer") store.startTimer(id);
   if (action === "pause") store.pause(id);
   if (action === "resume") store.resume(id);
   if (action === "remove") store.remove(id);
@@ -135,6 +161,7 @@ customForm.addEventListener("submit", (e) => {
   const minutes = parseFloat(data.get("minutes"));
   const flipMinutes = data.get("flipMinutes");
   const heat = data.get("heat").trim() || "Medium";
+  const category = data.get("category") || "Meat";
   if (!name || !minutes || minutes <= 0) return;
 
   const flipAt = flipMinutes
@@ -147,6 +174,7 @@ customForm.addEventListener("submit", (e) => {
   addCustomFood({
     id: `custom-${uid()}`,
     name,
+    category,
     heat,
     totalTime: Math.round(minutes * 60),
     flipAt,

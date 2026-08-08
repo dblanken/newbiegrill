@@ -41,6 +41,7 @@ class TimerStore {
   }
 
   elapsedOf(timer) {
+    if (!timer.started) return 0;
     if (timer.running) {
       return timer.accumulated + (Date.now() - timer.startedAt) / 1000;
     }
@@ -51,7 +52,10 @@ class TimerStore {
     return Math.max(timer.duration - this.elapsedOf(timer), 0);
   }
 
-  start(food) {
+  // Adds a timer in a pending (not counting down) state. Nothing runs until
+  // startTimer() is called on it - selecting a food should never start the
+  // clock on its own.
+  add(food) {
     const timer = {
       id: uid(),
       foodId: food.id,
@@ -62,9 +66,10 @@ class TimerStore {
       firedFlips: [],
       doneFired: false,
       finished: false,
-      running: true,
+      started: false,
+      running: false,
       accumulated: 0,
-      startedAt: Date.now(),
+      startedAt: null,
       createdAt: Date.now(),
     };
     this.timers.push(timer);
@@ -72,9 +77,18 @@ class TimerStore {
     return timer;
   }
 
+  startTimer(id) {
+    const t = this.timers.find((t) => t.id === id);
+    if (!t || t.started) return;
+    t.started = true;
+    t.running = true;
+    t.startedAt = Date.now();
+    this._emit();
+  }
+
   pause(id) {
     const t = this.timers.find((t) => t.id === id);
-    if (!t || !t.running) return;
+    if (!t || !t.started || !t.running) return;
     t.accumulated = this.elapsedOf(t);
     t.running = false;
     this._emit();
@@ -82,7 +96,7 @@ class TimerStore {
 
   resume(id) {
     const t = this.timers.find((t) => t.id === id);
-    if (!t || t.running || t.finished) return;
+    if (!t || !t.started || t.running || t.finished) return;
     t.startedAt = Date.now();
     t.running = true;
     this._emit();

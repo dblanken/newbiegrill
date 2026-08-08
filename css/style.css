@@ -98,6 +98,19 @@ main {
   color: var(--danger);
 }
 
+.preset-category + .preset-category {
+  margin-top: 1.1rem;
+}
+
+.preset-category-heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.5rem;
+}
+
 .preset-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -144,6 +157,7 @@ main {
 }
 
 .timer-card.paused { opacity: 0.75; }
+.timer-card.pending { border-style: dashed; border-color: var(--accent-2); }
 .timer-card.finished {
   border-color: var(--good);
   background: linear-gradient(0deg, rgba(76,175,125,0.08), rgba(76,175,125,0.08)), var(--panel);
