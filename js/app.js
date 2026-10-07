@@ -12,6 +12,7 @@ const donenessDialog = document.getElementById("doneness-dialog");
 const donenessFoodName = document.getElementById("doneness-food-name");
 const donenessOptionsEl = document.getElementById("doneness-options");
 const donenessCancelBtn = document.getElementById("doneness-cancel-btn");
+const donenessNotes = document.getElementById("doneness-notes");
 
 // Negative values are formatted with a leading "-" (used for overtime).
 function fmtTime(totalSeconds) {
@@ -24,6 +25,14 @@ function fmtTime(totalSeconds) {
   const ss = String(sec).padStart(2, "0");
   const core = h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${mm}:${ss}`;
   return negative ? `-${core}` : core;
+}
+
+// "Target 135°F · pull at 130°F", or "" when the food has no target temp.
+function tempLabel(t) {
+  if (!t.targetTemp) return "";
+  return t.pullTemp && t.pullTemp !== t.targetTemp
+    ? `Target ${t.targetTemp}°F · pull at ${t.pullTemp}°F`
+    : `Target ${t.targetTemp}°F`;
 }
 
 function renderPresets() {
@@ -68,12 +77,15 @@ function renderPresets() {
 
 function openDonenessPicker(food) {
   donenessFoodName.textContent = `${food.name} — Choose Doneness`;
+  donenessNotes.textContent = food.notes || "";
   donenessOptionsEl.innerHTML = "";
   for (const opt of food.donenessOptions) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "btn doneness-option";
-    btn.innerHTML = `<span>${opt.label}</span><span class="doneness-time">${fmtTime(opt.totalTime)}</span>`;
+    btn.innerHTML = `<span>${opt.label}</span><span class="doneness-time">${
+      opt.targetTemp ? `${opt.targetTemp}°F &middot; ` : ""
+    }${fmtTime(opt.totalTime)}</span>`;
     btn.addEventListener("click", () => {
       store.add({
         id: food.id,
@@ -82,6 +94,8 @@ function openDonenessPicker(food) {
         heat: food.heat,
         totalTime: opt.totalTime,
         flipAt: opt.flipAt,
+        targetTemp: opt.targetTemp,
+        pullTemp: opt.pullTemp,
       });
       donenessDialog.close();
     });
@@ -112,7 +126,10 @@ function timerCard(t) {
         <div class="timer-name">${t.name}</div>
         <div class="timer-heat">${t.heat}</div>
       </div>
-      <div class="timer-remaining${overtime ? " overtime-text" : ""}">${fmtTime(remaining)}</div>
+      <div class="timer-right">
+        <div class="timer-remaining${overtime ? " overtime-text" : ""}">${fmtTime(remaining)}</div>
+        ${t.targetTemp ? `<div class="timer-temp">🌡️ ${tempLabel(t)}</div>` : ""}
+      </div>
     </div>
     <div class="progress-track"><div class="progress-fill${overtime ? " overtime" : ""}" style="width:${pct}%"></div></div>
     <div class="timer-sub">
@@ -174,9 +191,12 @@ store.onFlip = (t, mark) => {
 };
 
 store.onDone = (t) => {
+  const check = t.targetTemp
+    ? `Check the temp — ${t.pullTemp || t.targetTemp}°F or higher means pull it.`
+    : "Timer finished — pull it off the grill.";
   alertUser({
     title: `${t.name} is done!`,
-    body: "Timer finished — pull it off the grill. It'll keep counting up until you stop it.",
+    body: `${check} It'll keep counting up until you stop it.`,
     beeps: 3,
   });
   flashBanner(`${t.name} is done!`);
@@ -201,6 +221,7 @@ customForm.addEventListener("submit", (e) => {
   const flipMinutes = data.get("flipMinutes");
   const heat = data.get("heat").trim() || "Medium";
   const category = data.get("category") || "Meat";
+  const targetTemp = parseFloat(data.get("targetTemp"));
   if (!name || !minutes || minutes <= 0) return;
 
   const flipAt = flipMinutes
@@ -217,6 +238,7 @@ customForm.addEventListener("submit", (e) => {
     heat,
     totalTime: Math.round(minutes * 60),
     flipAt,
+    targetTemp: targetTemp > 0 ? Math.round(targetTemp) : null,
     notes: "",
   });
 

@@ -1,6 +1,12 @@
 // Built-in food presets. Times are in seconds. flipAt is a list of elapsed-time
 // marks (seconds) at which the user should flip/turn the food. category groups
-// presets in the UI.
+// presets in the UI. targetTemp is the final internal temp (°F) that means
+// "done"; pullTemp, when set, is the lower temp to take it off the grill at so
+// carryover heat while resting brings it up to targetTemp. Times are only
+// estimates (patty/cut thickness and grill heat swing them a lot) - the
+// thermometer is the real test, which is why the target is shown on the timer.
+// Temps follow USDA minimums (ground meat 160, poultry 165, whole cuts and
+// fish 145) except where a doneness level deliberately asks for less.
 const CATEGORY_ORDER = ["Meat", "Seafood", "Vegetables", "Fruit"];
 
 const BUILTIN_FOODS = [
@@ -10,13 +16,14 @@ const BUILTIN_FOODS = [
     name: "Burger",
     category: "Meat",
     heat: "Medium-High",
-    totalTime: 9 * 60,
-    flipAt: [4 * 60 + 30],
-    notes: "Flip once. Don't press down.",
+    totalTime: 12 * 60,
+    flipAt: [6 * 60],
+    targetTemp: 160,
+    notes: "Times assume a ~3/4\"–1\" patty with the lid closed. Flip once. Don't press down. USDA recommends 160F for ground beef.",
     donenessOptions: [
-      { label: "Medium", totalTime: 8 * 60, flipAt: [4 * 60] },
-      { label: "Medium-Well", totalTime: 9 * 60, flipAt: [4 * 60 + 30] },
-      { label: "Well-Done", totalTime: 10 * 60, flipAt: [5 * 60] },
+      { label: "Medium", totalTime: 8 * 60, flipAt: [4 * 60], targetTemp: 145 },
+      { label: "Medium-Well", totalTime: 10 * 60, flipAt: [5 * 60], targetTemp: 150 },
+      { label: "Well-Done", totalTime: 12 * 60, flipAt: [6 * 60], targetTemp: 160 },
     ],
   },
   {
@@ -26,7 +33,7 @@ const BUILTIN_FOODS = [
     heat: "Medium",
     totalTime: 7 * 60,
     flipAt: [2 * 60, 4 * 60, 6 * 60],
-    notes: "Roll every couple minutes for even char.",
+    notes: "Roll every couple minutes for even char. Already cooked — just heat through.",
   },
   {
     id: "bratwurst",
@@ -35,6 +42,7 @@ const BUILTIN_FOODS = [
     heat: "Medium",
     totalTime: 20 * 60,
     flipAt: [5 * 60, 10 * 60, 15 * 60],
+    targetTemp: 160,
     notes: "Turn every 5 min. Move to indirect heat if flaring.",
   },
   {
@@ -44,7 +52,8 @@ const BUILTIN_FOODS = [
     heat: "Medium",
     totalTime: 14 * 60,
     flipAt: [7 * 60],
-    notes: "Pound to even thickness first. Internal temp 165F.",
+    targetTemp: 165,
+    notes: "Pound to even thickness first.",
   },
   {
     id: "chicken-thigh",
@@ -53,7 +62,8 @@ const BUILTIN_FOODS = [
     heat: "Medium",
     totalTime: 30 * 60,
     flipAt: [15 * 60],
-    notes: "Skin side down first. Internal temp 165F.",
+    targetTemp: 165,
+    notes: "Skin side down first.",
   },
   {
     id: "chicken-wings",
@@ -62,7 +72,8 @@ const BUILTIN_FOODS = [
     heat: "Medium",
     totalTime: 20 * 60,
     flipAt: [10 * 60],
-    notes: "Move to indirect heat if flaring. Internal temp 165F.",
+    targetTemp: 165,
+    notes: "Move to indirect heat if flaring.",
   },
   {
     id: "chicken-drumsticks",
@@ -71,22 +82,23 @@ const BUILTIN_FOODS = [
     heat: "Medium",
     totalTime: 25 * 60,
     flipAt: [12 * 60 + 30],
-    notes: "Internal temp 165F.",
+    targetTemp: 165,
+    notes: "",
   },
   {
     id: "steak-1in",
     name: 'Steak (1" thick)',
     category: "Meat",
     heat: "High",
-    totalTime: 8 * 60,
-    flipAt: [4 * 60],
+    totalTime: 10 * 60,
+    flipAt: [5 * 60],
     notes: "Sear hot. Rest 5 min after grill.",
     donenessOptions: [
-      { label: "Rare", totalTime: 6 * 60, flipAt: [3 * 60] },
-      { label: "Medium-Rare", totalTime: 7 * 60, flipAt: [3 * 60 + 30] },
-      { label: "Medium", totalTime: 8 * 60, flipAt: [4 * 60] },
-      { label: "Medium-Well", totalTime: 9 * 60, flipAt: [4 * 60 + 30] },
-      { label: "Well-Done", totalTime: 11 * 60, flipAt: [5 * 60 + 30] },
+      { label: "Rare", totalTime: 6 * 60, flipAt: [3 * 60], targetTemp: 125, pullTemp: 120 },
+      { label: "Medium-Rare", totalTime: 8 * 60, flipAt: [4 * 60], targetTemp: 135, pullTemp: 130 },
+      { label: "Medium", totalTime: 10 * 60, flipAt: [5 * 60], targetTemp: 145, pullTemp: 140 },
+      { label: "Medium-Well", totalTime: 12 * 60, flipAt: [6 * 60], targetTemp: 150, pullTemp: 145 },
+      { label: "Well-Done", totalTime: 14 * 60, flipAt: [7 * 60], targetTemp: 160, pullTemp: 155 },
     ],
   },
   {
@@ -98,11 +110,11 @@ const BUILTIN_FOODS = [
     flipAt: [3 * 60],
     notes: "Cooks fast — watch closely.",
     donenessOptions: [
-      { label: "Rare", totalTime: 4 * 60, flipAt: [2 * 60] },
-      { label: "Medium-Rare", totalTime: 5 * 60, flipAt: [2 * 60 + 30] },
-      { label: "Medium", totalTime: 6 * 60, flipAt: [3 * 60] },
-      { label: "Medium-Well", totalTime: 7 * 60, flipAt: [3 * 60 + 30] },
-      { label: "Well-Done", totalTime: 8 * 60, flipAt: [4 * 60] },
+      { label: "Rare", totalTime: 4 * 60, flipAt: [2 * 60], targetTemp: 125, pullTemp: 120 },
+      { label: "Medium-Rare", totalTime: 5 * 60, flipAt: [2 * 60 + 30], targetTemp: 135, pullTemp: 130 },
+      { label: "Medium", totalTime: 6 * 60, flipAt: [3 * 60], targetTemp: 145, pullTemp: 140 },
+      { label: "Medium-Well", totalTime: 7 * 60, flipAt: [3 * 60 + 30], targetTemp: 150, pullTemp: 145 },
+      { label: "Well-Done", totalTime: 8 * 60, flipAt: [4 * 60], targetTemp: 160, pullTemp: 155 },
     ],
   },
   {
@@ -112,11 +124,12 @@ const BUILTIN_FOODS = [
     heat: "Medium-High",
     totalTime: 12 * 60,
     flipAt: [6 * 60],
-    notes: "Internal temp 145F, then rest.",
+    targetTemp: 145,
+    notes: "Rest 3 min before cutting.",
     donenessOptions: [
-      { label: "Medium", totalTime: 12 * 60, flipAt: [6 * 60] },
-      { label: "Medium-Well", totalTime: 13 * 60, flipAt: [6 * 60 + 30] },
-      { label: "Well-Done", totalTime: 14 * 60, flipAt: [7 * 60] },
+      { label: "Medium", totalTime: 12 * 60, flipAt: [6 * 60], targetTemp: 145 },
+      { label: "Medium-Well", totalTime: 13 * 60, flipAt: [6 * 60 + 30], targetTemp: 150 },
+      { label: "Well-Done", totalTime: 14 * 60, flipAt: [7 * 60], targetTemp: 160 },
     ],
   },
   {
@@ -126,11 +139,12 @@ const BUILTIN_FOODS = [
     heat: "Medium",
     totalTime: 20 * 60,
     flipAt: [10 * 60],
-    notes: "Turn occasionally for even browning. Internal temp 145F.",
+    targetTemp: 145,
+    notes: "Turn occasionally for even browning. Rest before slicing.",
     donenessOptions: [
-      { label: "Medium", totalTime: 20 * 60, flipAt: [10 * 60] },
-      { label: "Medium-Well", totalTime: 22 * 60, flipAt: [11 * 60] },
-      { label: "Well-Done", totalTime: 24 * 60, flipAt: [12 * 60] },
+      { label: "Medium", totalTime: 20 * 60, flipAt: [10 * 60], targetTemp: 145 },
+      { label: "Medium-Well", totalTime: 22 * 60, flipAt: [11 * 60], targetTemp: 150 },
+      { label: "Well-Done", totalTime: 24 * 60, flipAt: [12 * 60], targetTemp: 160 },
     ],
   },
   {
@@ -140,7 +154,8 @@ const BUILTIN_FOODS = [
     heat: "Low (Indirect)",
     totalTime: 180 * 60,
     flipAt: [60 * 60, 120 * 60],
-    notes: "Wrap in foil after first flip if desired.",
+    targetTemp: 195,
+    notes: "Wrap in foil after first flip if desired. Safe well before this — 195-203F is where they turn tender.",
   },
   {
     id: "lamb-chops",
@@ -151,11 +166,11 @@ const BUILTIN_FOODS = [
     flipAt: [4 * 60],
     notes: "Sear hot, rest before serving.",
     donenessOptions: [
-      { label: "Rare", totalTime: 6 * 60, flipAt: [3 * 60] },
-      { label: "Medium-Rare", totalTime: 7 * 60, flipAt: [3 * 60 + 30] },
-      { label: "Medium", totalTime: 8 * 60, flipAt: [4 * 60] },
-      { label: "Medium-Well", totalTime: 9 * 60, flipAt: [4 * 60 + 30] },
-      { label: "Well-Done", totalTime: 10 * 60, flipAt: [5 * 60] },
+      { label: "Rare", totalTime: 6 * 60, flipAt: [3 * 60], targetTemp: 125, pullTemp: 120 },
+      { label: "Medium-Rare", totalTime: 7 * 60, flipAt: [3 * 60 + 30], targetTemp: 135, pullTemp: 130 },
+      { label: "Medium", totalTime: 8 * 60, flipAt: [4 * 60], targetTemp: 145, pullTemp: 140 },
+      { label: "Medium-Well", totalTime: 9 * 60, flipAt: [4 * 60 + 30], targetTemp: 150, pullTemp: 145 },
+      { label: "Well-Done", totalTime: 10 * 60, flipAt: [5 * 60], targetTemp: 160, pullTemp: 155 },
     ],
   },
   {
@@ -165,7 +180,8 @@ const BUILTIN_FOODS = [
     heat: "Medium",
     totalTime: 12 * 60,
     flipAt: [6 * 60],
-    notes: "Internal temp 165F — cook through, no pink.",
+    targetTemp: 165,
+    notes: "Cook through, no pink.",
   },
 
   // --- Seafood ---
@@ -176,11 +192,12 @@ const BUILTIN_FOODS = [
     heat: "Medium",
     totalTime: 12 * 60,
     flipAt: [6 * 60],
-    notes: "Skin side down most of the time.",
+    targetTemp: 135,
+    notes: "Skin side down most of the time. USDA recommends 145F.",
     donenessOptions: [
-      { label: "Medium-Rare", totalTime: 10 * 60, flipAt: [5 * 60] },
-      { label: "Medium", totalTime: 12 * 60, flipAt: [6 * 60] },
-      { label: "Well-Done", totalTime: 14 * 60, flipAt: [7 * 60] },
+      { label: "Medium-Rare", totalTime: 10 * 60, flipAt: [5 * 60], targetTemp: 125 },
+      { label: "Medium", totalTime: 12 * 60, flipAt: [6 * 60], targetTemp: 135 },
+      { label: "Well-Done", totalTime: 14 * 60, flipAt: [7 * 60], targetTemp: 145 },
     ],
   },
   {
@@ -199,6 +216,7 @@ const BUILTIN_FOODS = [
     heat: "Medium",
     totalTime: 8 * 60,
     flipAt: [4 * 60],
+    targetTemp: 145,
     notes: "Delicate — use a fish basket or foil if it's sticking.",
   },
   {

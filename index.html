@@ -68,6 +68,10 @@
         Flip times (minutes elapsed, comma separated)
         <input type="text" name="flipMinutes" placeholder="e.g. 5, 10" />
       </label>
+      <label>
+        Target internal temp (°F, optional)
+        <input type="number" name="targetTemp" min="1" step="1" placeholder="e.g. 165" />
+      </label>
       <div class="dialog-actions">
         <button type="button" class="btn btn-ghost" onclick="customFoodDialog_cancel()">Cancel</button>
         <button type="submit" class="btn btn-primary">Save</button>
@@ -77,6 +81,7 @@
 
   <dialog id="doneness-dialog">
     <h3 id="doneness-food-name">Choose Doneness</h3>
+    <p id="doneness-notes" class="doneness-notes"></p>
     <div id="doneness-options" class="doneness-options"></div>
     <div class="dialog-actions">
       <button type="button" class="btn btn-ghost" id="doneness-cancel-btn">Cancel</button>

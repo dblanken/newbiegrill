@@ -1,4 +1,4 @@
-const CACHE_NAME = "grilltime-v2";
+const CACHE_NAME = "grilltime-v3";
 const APP_SHELL = [
   "./",
   "./index.html",

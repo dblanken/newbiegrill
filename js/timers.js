@@ -67,6 +67,8 @@ class TimerStore {
       heat: food.heat,
       duration: food.totalTime,
       flipAt: [...(food.flipAt || [])],
+      targetTemp: food.targetTemp || null,
+      pullTemp: food.pullTemp || null,
       firedFlips: [],
       doneFired: false,
       started: false,

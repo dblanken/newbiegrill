@@ -212,6 +212,25 @@ main {
   color: var(--text-dim);
 }
 
+.timer-right {
+  text-align: right;
+}
+
+.timer-temp {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.doneness-notes {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.doneness-notes:empty { display: none; }
+
 .timer-remaining {
   font-variant-numeric: tabular-nums;
   font-size: 1.4rem;
