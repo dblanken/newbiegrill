@@ -1,6 +1,6 @@
-# GrillTime
+# Newbie Grill
 
-A GrillTime Pro-inspired grill timer. Pick a food preset (or add your own),
+A grill timer for beginners. Pick a food preset (or add your own),
 start as many timers as you're grilling at once, and get alerted when it's
 time to flip and when each one's done.
 

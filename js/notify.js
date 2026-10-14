@@ -93,7 +93,7 @@ async function showSystemNotification(title, body) {
         body,
         icon: "icons/icon-192.png",
         badge: "icons/icon-192.png",
-        tag: `grilltime-${Date.now()}`,
+        tag: `newbiegrill-${Date.now()}`,
         vibrate: [200, 100, 200],
       });
       return;
@@ -109,5 +109,5 @@ function alertUser({ title, body, kind }) {
   showSystemNotification(title, body);
   playSound(kind);
   if (navigator.vibrate) navigator.vibrate(VIBRATE[kind]);
-  document.dispatchEvent(new CustomEvent("grilltime:alert", { detail: { title, body, kind } }));
+  document.dispatchEvent(new CustomEvent("newbiegrill:alert", { detail: { title, body, kind } }));
 }

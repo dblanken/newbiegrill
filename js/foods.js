@@ -366,7 +366,22 @@ const BUILTIN_FOODS = [
   },
 ];
 
-const FOOD_STORAGE_KEY = "grilltime.customFoods";
+const FOOD_STORAGE_KEY = "newbiegrill.customFoods";
+
+// The app used to be called GrillTime. Carry saved data over from its old
+// localStorage keys once (foods.js loads first, so this covers timers too).
+for (const [oldKey, newKey] of [
+  ["grilltime.customFoods", FOOD_STORAGE_KEY],
+  ["grilltime.timers", "newbiegrill.timers"],
+]) {
+  try {
+    const old = localStorage.getItem(oldKey);
+    if (old !== null && localStorage.getItem(newKey) === null) localStorage.setItem(newKey, old);
+    localStorage.removeItem(oldKey);
+  } catch (e) {
+    console.warn("Storage migration failed", e);
+  }
+}
 
 function loadCustomFoods() {
   try {

@@ -2,7 +2,7 @@
 // stays correct across tab throttling, screen lock, or the page being
 // reloaded/reopened later - never trust an interval tick's own drift.
 
-const TIMERS_STORAGE_KEY = "grilltime.timers";
+const TIMERS_STORAGE_KEY = "newbiegrill.timers";
 
 function uid() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;

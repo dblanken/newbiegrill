@@ -1,6 +1,6 @@
 {
-  "name": "GrillTime",
-  "short_name": "GrillTime",
+  "name": "Newbie Grill",
+  "short_name": "Newbie Grill",
   "description": "Grill timer with food presets, flip alerts, and multiple simultaneous timers.",
   "start_url": "./index.html",
   "scope": "./",
