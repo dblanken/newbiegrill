@@ -8,7 +8,9 @@ let audioCtx = null;
 
 function getAudioCtx() {
   audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === "suspended") audioCtx.resume();
+  // iOS also parks the context in "interrupted" after the app is backgrounded
+  // or a call/Siri takes the audio, so resume from anything but running.
+  if (audioCtx.state !== "running") audioCtx.resume();
   return audioCtx;
 }
 

@@ -17,6 +17,7 @@ const donenessNotes = document.getElementById("doneness-notes");
 // Negative values are formatted with a leading "-" (used for overtime).
 const FLIP_DUE_SECONDS = 60;
 const PULSE_MS = 1200; // keep in sync with the pulse animations in style.css
+const DONE_REPEAT_MS = 20000; // replay the done chime this often until stopped/paused
 
 function fmtTime(totalSeconds) {
   const negative = totalSeconds < 0;
@@ -209,7 +210,12 @@ store.onFlip = (t, mark) => {
   flashBanner(`Flip the ${t.name}!`, "flip");
 };
 
+// Last time the done chime played, per timer id. In memory only: after a
+// reload a still-overtime timer simply chimes again on the next tick.
+const doneChimedAt = {};
+
 store.onDone = (t) => {
+  doneChimedAt[t.id] = Date.now();
   const check = t.targetTemp
     ? `Check the temp — ${t.pullTemp || t.targetTemp}°F or higher means pull it.`
     : "Timer finished — pull it off the grill.";
@@ -293,7 +299,47 @@ notifyBtn.addEventListener("click", async () => {
 // still lands on the right second once it's rendered again.
 function loop() {
   store.tick();
+  repeatDoneChimes();
+  syncWakeLock();
   renderActive();
+}
+
+// A single chime is easy to miss over a grill, so keep chiming while a done
+// timer is still running; pausing or stopping it silences it.
+function repeatDoneChimes() {
+  const now = Date.now();
+  for (const t of store.timers) {
+    if (!t.doneFired || !t.running) continue;
+    if (now - (doneChimedAt[t.id] || 0) < DONE_REPEAT_MS) continue;
+    doneChimedAt[t.id] = now;
+    playSound("done");
+    if (navigator.vibrate) navigator.vibrate(VIBRATE.done);
+  }
+}
+
+// Keep the screen from dimming/locking while any timer has been started, since
+// iOS suspends the page (no sounds, no alerts) once it locks. The OS drops the
+// lock whenever the app is hidden; this runs every tick, so it's re-taken as
+// soon as the app is visible again.
+let wakeLock = null;
+let wakeLockPending = false;
+async function syncWakeLock() {
+  if (!("wakeLock" in navigator)) return;
+  const want = store.timers.some((t) => t.started);
+  if (want && !wakeLock && !wakeLockPending && document.visibilityState === "visible") {
+    wakeLockPending = true;
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => (wakeLock = null));
+    } catch (e) {
+      console.warn("Wake lock failed", e);
+    } finally {
+      wakeLockPending = false;
+    }
+  } else if (!want && wakeLock) {
+    wakeLock.release();
+    wakeLock = null;
+  }
 }
 
 setInterval(loop, 1000);
