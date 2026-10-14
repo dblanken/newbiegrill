@@ -139,7 +139,7 @@ function timerCard(t) {
           : overtime
           ? `Past done by ${fmtTime(Math.abs(remaining))} — stop or pause when ready.`
           : nextFlip !== undefined
-          ? `Next flip at ${fmtTime(nextFlip)}`
+          ? `Next flip in ${fmtTime(Math.max(0, nextFlip - elapsed))}`
           : "No more flips — waiting for done alert"
       }
     </div>
@@ -185,7 +185,7 @@ store.onChange(() => renderActive());
 store.onFlip = (t, mark) => {
   alertUser({
     title: `Flip the ${t.name}!`,
-    body: `${fmtTime(mark)} elapsed — time to flip.`,
+    body: `${fmtTime(t.duration - mark)} left — time to flip.`,
   });
   flashBanner(`Flip the ${t.name}!`);
 };
