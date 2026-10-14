@@ -58,7 +58,7 @@ function renderPresets() {
         : fmtTime(food.totalTime);
       card.innerHTML = `
         <span class="food-name">${food.name}</span>
-        <span class="food-meta">${food.heat} &middot; ${timeLabel}</span>
+        <span class="food-meta">${heatLabel(food.heat)} &middot; ${timeLabel}</span>
         ${food.donenessOptions ? `<span class="food-badge">Choose doneness</span>` : ""}
       `;
       card.addEventListener("click", () => {
@@ -124,7 +124,7 @@ function timerCard(t) {
     <div class="timer-head">
       <div>
         <div class="timer-name">${t.name}</div>
-        <div class="timer-heat">${t.heat}</div>
+        <div class="timer-heat">${heatLabel(t.heat)}</div>
       </div>
       <div class="timer-right">
         <div class="timer-remaining${overtime ? " overtime-text" : ""}">${fmtTime(remaining)}</div>

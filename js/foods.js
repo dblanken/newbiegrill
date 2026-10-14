@@ -9,6 +9,30 @@
 // fish 145) except where a doneness level deliberately asks for less.
 const CATEGORY_ORDER = ["Meat", "Seafood", "Vegetables", "Fruit"];
 
+// Lid-thermometer ranges (°F) for each heat setting, so "Medium" means a number
+// on the grill's gauge rather than a guess at knob position. Lid gauges read
+// the air under the dome, which runs a bit cooler than the grates.
+const HEAT_RANGES = {
+  low: [250, 325],
+  medium: [350, 450],
+  "medium-high": [450, 500],
+  high: [500, 550],
+};
+
+// "Medium" -> "Medium (350–450°F)", "Low (Indirect)" -> "Low (Indirect,
+// 250–325°F)", with the range in a no-wrap span (callers render it as HTML).
+// Unknown settings (free text on custom foods) come back unchanged.
+function heatLabel(heat) {
+  if (!heat) return "";
+  const m = heat.match(/^([^(]*?)\s*(?:\((.*)\))?\s*$/);
+  if (!m) return heat;
+  const [, base, note] = m;
+  const range = HEAT_RANGES[base.toLowerCase().replace(/\s+/g, "-")];
+  if (!range) return heat;
+  const temps = `<span class="heat-range">${range[0]}–${range[1]}°F</span>`;
+  return `${base} (${note ? `${note}, ` : ""}${temps})`;
+}
+
 const BUILTIN_FOODS = [
   // --- Meat ---
   {

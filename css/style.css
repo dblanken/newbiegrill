@@ -212,6 +212,10 @@ main {
   color: var(--text-dim);
 }
 
+.heat-range {
+  white-space: nowrap;
+}
+
 .timer-right {
   text-align: right;
 }
