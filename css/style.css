@@ -196,6 +196,31 @@ main {
 
 .timer-remaining.overtime-text { color: var(--danger); }
 
+/* Flip due / done: a pulsing glow on the card. Durations match PULSE_MS in
+   app.js, which offsets animation-delay so the per-second re-render doesn't
+   restart them. */
+.timer-card.flip-due {
+  border-color: var(--accent-2);
+  animation: flip-pulse 1.2s ease-in-out infinite;
+}
+.timer-card.overtime {
+  animation: done-pulse 1.2s ease-in-out infinite;
+}
+@keyframes flip-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(250,186,63,0); }
+  50% { box-shadow: 0 0 0 4px rgba(250,186,63,0.55), 0 0 18px rgba(250,186,63,0.35); }
+}
+@keyframes done-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217,80,80,0); }
+  50% { box-shadow: 0 0 0 4px rgba(217,80,80,0.6), 0 0 18px rgba(217,80,80,0.4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timer-card.flip-due, .timer-card.overtime { animation: none; border-width: 3px; }
+}
+
+.flip-now { color: var(--accent-2); font-size: 1rem; }
+.done-now { color: var(--danger); font-size: 1rem; }
+
 .timer-head {
   display: flex;
   justify-content: space-between;
@@ -286,6 +311,7 @@ main {
 }
 
 .alert-banner.show { top: 12px; }
+.alert-banner.done { background: var(--danger); color: #fff; }
 
 dialog {
   border: none;

@@ -70,6 +70,7 @@ class TimerStore {
       targetTemp: food.targetTemp || null,
       pullTemp: food.pullTemp || null,
       firedFlips: [],
+      flipDueAt: null, // elapsed mark of a flip not yet acknowledged
       doneFired: false,
       started: false,
       running: false,
@@ -107,6 +108,14 @@ class TimerStore {
     this._emit();
   }
 
+  // Clears the "flip now" state once the cook says they've flipped.
+  ackFlip(id) {
+    const t = this.timers.find((t) => t.id === id);
+    if (!t) return;
+    t.flipDueAt = null;
+    this._emit();
+  }
+
   remove(id) {
     this.timers = this.timers.filter((t) => t.id !== id);
     this._emit();
@@ -126,6 +135,7 @@ class TimerStore {
       for (const mark of t.flipAt) {
         if (elapsed >= mark && !t.firedFlips.includes(mark)) {
           t.firedFlips.push(mark);
+          t.flipDueAt = mark;
           changed = true;
           this.onFlip && this.onFlip(t, mark);
         }
@@ -133,6 +143,7 @@ class TimerStore {
 
       if (elapsed >= t.duration && !t.doneFired) {
         t.doneFired = true;
+        t.flipDueAt = null;
         changed = true;
         this.onDone && this.onDone(t);
       }

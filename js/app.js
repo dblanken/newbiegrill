@@ -15,6 +15,9 @@ const donenessCancelBtn = document.getElementById("doneness-cancel-btn");
 const donenessNotes = document.getElementById("doneness-notes");
 
 // Negative values are formatted with a leading "-" (used for overtime).
+const FLIP_DUE_SECONDS = 60;
+const PULSE_MS = 1200; // keep in sync with the pulse animations in style.css
+
 function fmtTime(totalSeconds) {
   const negative = totalSeconds < 0;
   const s = Math.round(Math.abs(totalSeconds));
@@ -112,14 +115,23 @@ function timerCard(t) {
   const overtime = t.started && remaining < 0;
   const pct = Math.min(100, (elapsed / t.duration) * 100);
   const nextFlip = t.flipAt.find((m) => !t.firedFlips.includes(m) && m > elapsed - 0.5);
+  // A flip stays flagged until "Flipped" is tapped, or for FLIP_DUE_SECONDS
+  // if it isn't, so a cook who flipped without touching the phone isn't left
+  // with a pulsing card.
+  const flipDue =
+    t.started && !overtime && t.flipDueAt != null && elapsed - t.flipDueAt < FLIP_DUE_SECONDS;
 
   const el = document.createElement("div");
   el.className =
     "timer-card" +
     (t.started && !t.running ? " paused" : "") +
     (!t.started ? " pending" : "") +
-    (overtime ? " overtime" : "");
+    (overtime ? " overtime" : "") +
+    (flipDue ? " flip-due" : "");
   el.dataset.id = t.id;
+  // The list is rebuilt every second, which would restart the pulse
+  // animation each tick; offsetting it by wall-clock time keeps it smooth.
+  if (flipDue || overtime) el.style.animationDelay = `-${(Date.now() % PULSE_MS) / 1000}s`;
   el.innerHTML = `
     <div class="timer-head">
       <div>
@@ -137,7 +149,11 @@ function timerCard(t) {
         !t.started
           ? "Ready — tap Start when it's on the grill."
           : overtime
-          ? `Past done by ${fmtTime(Math.abs(remaining))} — stop or pause when ready.`
+          ? `<strong class="done-now">Done!</strong> Past done by ${fmtTime(Math.abs(remaining))} — stop or pause when ready.`
+          : flipDue
+          ? `<strong class="flip-now">Flip now!</strong>${
+              nextFlip !== undefined ? ` Next flip in ${fmtTime(Math.max(0, nextFlip - elapsed))}` : ""
+            }`
           : nextFlip !== undefined
           ? `Next flip in ${fmtTime(Math.max(0, nextFlip - elapsed))}`
           : "No more flips — waiting for done alert"
@@ -151,6 +167,7 @@ function timerCard(t) {
             <button class="btn btn-remove" data-action="remove">Cancel</button>
           `
           : `
+            ${flipDue ? `<button class="btn btn-primary" data-action="ackFlip">Flipped ✓</button>` : ""}
             <button class="btn" data-action="${t.running ? "pause" : "resume"}">${t.running ? "Pause" : "Resume"}</button>
             <button class="btn btn-remove" data-action="remove">Stop</button>
           `
@@ -177,6 +194,7 @@ activeList.addEventListener("click", (e) => {
   if (action === "startTimer") store.startTimer(id);
   if (action === "pause") store.pause(id);
   if (action === "resume") store.resume(id);
+  if (action === "ackFlip") store.ackFlip(id);
   if (action === "remove") store.remove(id);
 });
 
@@ -186,8 +204,9 @@ store.onFlip = (t, mark) => {
   alertUser({
     title: `Flip the ${t.name}!`,
     body: `${fmtTime(t.duration - mark)} left — time to flip.`,
+    kind: "flip",
   });
-  flashBanner(`Flip the ${t.name}!`);
+  flashBanner(`Flip the ${t.name}!`, "flip");
 };
 
 store.onDone = (t) => {
@@ -197,14 +216,15 @@ store.onDone = (t) => {
   alertUser({
     title: `${t.name} is done!`,
     body: `${check} It'll keep counting up until you stop it.`,
-    beeps: 3,
+    kind: "done",
   });
-  flashBanner(`${t.name} is done!`);
+  flashBanner(`${t.name} is done!`, "done");
 };
 
 let bannerTimeout = null;
-function flashBanner(text) {
+function flashBanner(text, kind) {
   alertBanner.textContent = text;
+  alertBanner.classList.toggle("done", kind === "done");
   alertBanner.classList.add("show");
   clearTimeout(bannerTimeout);
   bannerTimeout = setTimeout(() => alertBanner.classList.remove("show"), 6000);
