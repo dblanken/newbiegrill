@@ -1,4 +1,4 @@
-const CACHE_NAME = "grilltime-v4";
+const CACHE_NAME = "grilltime-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -57,9 +57,11 @@ self.addEventListener("fetch", (event) => {
 
   if (NETWORK_FIRST_PATHS.has(url.pathname)) {
     // Network-first: always try to get the latest app code; fall back to
-    // cache only when offline (e.g. no signal out at the grill).
+    // cache only when offline (e.g. no signal out at the grill). "no-cache"
+    // makes the browser revalidate with the server instead of reusing its
+    // HTTP cache, which GitHub Pages lets serve stale files for 10 minutes.
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: "no-cache" })
         .then((response) => {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
