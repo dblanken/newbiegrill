@@ -19,14 +19,16 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  padding-bottom: 3rem;
+  padding-bottom: calc(3rem + env(safe-area-inset-bottom));
 }
 
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
+  /* The app draws edge to edge on iPhone (black-translucent status bar), so
+     push the header's content below the status bar / Dynamic Island. */
+  padding: calc(1rem + env(safe-area-inset-top)) 1.25rem 1rem;
   position: sticky;
   top: 0;
   background: var(--bg);
